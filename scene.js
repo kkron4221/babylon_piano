@@ -89,24 +89,28 @@ const createScene = async function(engine) {
     keyboard.position.y += 80;
 
     const pointerToKey = new Map();
+    const pianoSound = await Soundfont.instrument(new AudioContext(), 'acoustic_grand_piano');
+
     scene.onPointerObservable.add((pointerInfo) => {
-        switch (pointerInfo.type){
+        switch (pointerInfo.type) {
             case BABYLON.PointerEventTypes.POINTERDOWN:
                 if(pointerInfo.pickInfo.hit) {
-                    const pickedMesh = pointerInfo.pickInfo.pickedMesh;
-                    const pointerId = pointerInfo.event.pointerId;
+                    let pickedMesh = pointerInfo.pickInfo.pickedMesh;
+                    let pointerId = pointerInfo.event.pointerId;
                     if (pickedMesh.parent === keyboard) {
                         pickedMesh.position.y -= 0.5;
                         pointerToKey.set(pointerId, {
-                            mesh: pickedMesh
+                            mesh: pickedMesh,
+                            note: pianoSound.play(pointerInfo.pickInfo.pickedMesh.name)
                         });
                     }
                 }
                 break;
             case BABYLON.PointerEventTypes.POINTERUP:
-                const pointerId = pointerInfo.event.pointerId;
+                let pointerId = pointerInfo.event.pointerId;
                 if (pointerToKey.has(pointerId)) {
                     pointerToKey.get(pointerId).mesh.position.y += 0.5;
+                    pointerToKey.get(pointerId).note.stop();
                     pointerToKey.delete(pointerId);
                 }
                 break;
